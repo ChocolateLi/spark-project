@@ -1,5 +1,6 @@
 package com.chenli.sparkproject.util;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -126,6 +127,20 @@ public class DateUtils {
 	 */
 	public static String formatTime(Date date) {
 		return TIME_FORMAT.format(date);
+	}
+
+	/**
+	 * 解析时间字符串
+	 * @param time 时间字符串
+	 * @return
+	 */
+	public static Date parseTime(String time) {
+		try {
+			return TIME_FORMAT.parse(time);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
 }

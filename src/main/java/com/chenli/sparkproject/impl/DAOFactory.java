@@ -1,5 +1,6 @@
 package com.chenli.sparkproject.impl;
 
+import com.chenli.sparkproject.dao.ISessionAggrStatDAO;
 import com.chenli.sparkproject.dao.ITaskDAO;
 
 /**
@@ -14,6 +15,14 @@ public class DAOFactory {
      */
     public static ITaskDAO getTaskDAO(){
         return new TaskDAOImpl();
+    }
+
+    /**
+     * 获取session聚合统计DAO
+     * @return
+     */
+    public static ISessionAggrStatDAO getSessionAggrStatDAO(){
+        return new SessionAggrStatDAOImpl();
     }
 
 }
