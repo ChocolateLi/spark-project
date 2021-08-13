@@ -6,7 +6,7 @@ import org.apache.spark.AccumulatorParam;
 
 /**
  * session聚合统计Accumulator
- *
+ * 自定义累加器
  * Spark Core里面比较高端的技术
  *
  * @author: 小LeetCode~

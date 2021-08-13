@@ -2,7 +2,7 @@ package com.chenli.sparkproject.test;
 
 import com.chenli.sparkproject.dao.ITaskDAO;
 import com.chenli.sparkproject.domain.Task;
-import com.chenli.sparkproject.impl.DAOFactory;
+import com.chenli.sparkproject.factory.DAOFactory;
 
 /**
  * 任务管理类测试
