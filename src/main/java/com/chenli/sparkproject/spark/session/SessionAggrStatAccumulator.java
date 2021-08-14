@@ -1,4 +1,4 @@
-package com.chenli.sparkproject.spark;
+package com.chenli.sparkproject.spark.session;
 
 import com.chenli.sparkproject.constant.Constants;
 import com.chenli.sparkproject.util.StringUtils;

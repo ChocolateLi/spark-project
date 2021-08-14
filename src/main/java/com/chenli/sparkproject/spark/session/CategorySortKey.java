@@ -1,4 +1,4 @@
-package com.chenli.sparkproject.spark;
+package com.chenli.sparkproject.spark.session;
 
 import scala.Serializable;
 import scala.math.Ordered;
