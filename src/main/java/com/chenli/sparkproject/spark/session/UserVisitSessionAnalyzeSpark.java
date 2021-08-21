@@ -74,6 +74,13 @@ import java.util.*;
  *
  * 五、troublshooting
  * 11、调整reduce端缓冲大小
+ *
+ * 六、数据倾斜
+ * 1、提高Shuffle操作reduce端的并行度
+ * 2、随机key实现双重聚合
+ * 3、使用 map join替代reduce join
+ * 4、smaple采用倾斜key单独进行join
+ * 5、使用随机数和扩容表进行join
  */
 @SuppressWarnings("all")
 public class UserVisitSessionAnalyzeSpark {
@@ -154,7 +161,7 @@ public class UserVisitSessionAnalyzeSpark {
         //然后就可以获取到session粒度的数据，同时呢，数据里面包含了session对应的user的信息
         //到这里为止，获取的数据是<sessionid,(sessionid,searchKeywords,clickCategoryIds,visitLength,stepLength,startTime,age,professional,city,sex)>
         JavaPairRDD<String, String> sessionid2AggrInfoRDD =
-                aggregateBySession(sqlContext, sessionid2actionRDD);
+                aggregateBySession(sc,sqlContext, sessionid2actionRDD);
 
         //针对session粒度的聚合数据，按照使用者指定的筛选参数进行数据的过滤
         //编写的算子要访问外面的任务参数对象的
@@ -328,7 +335,9 @@ public class UserVisitSessionAnalyzeSpark {
      * @return
      */
     private static JavaPairRDD<String, String> aggregateBySession(
-            SQLContext sqlContext, JavaPairRDD<String,Row> sessionid2ActionRDD) {
+            JavaSparkContext sc,
+            SQLContext sqlContext,
+            JavaPairRDD<String,Row> sessionid2ActionRDD) {
 
 
         //对行为数据按session粒度进行分组
@@ -454,9 +463,262 @@ public class UserVisitSessionAnalyzeSpark {
                     }
         });
 
+        /**
+         * 这里比较使用用reduce join转换为 map join的方式
+         *
+         * userid2PartAggreInfoRDD，可能数据量比较，可能在1千万数据
+         * userid2InfoRDD，可能数据量比较小，才10万用户
+         */
         //将sessionl粒度数据聚合，与用户信息进行join
         JavaPairRDD<Long,Tuple2<String,Row>> userid2FullInfoRDD =
                 userid2PartAggreInfoRDD.join(userid2InfoRDD);
+
+        /**
+         * reduce join转换为map join
+         */
+//        //collect()将RDD类型的数据转换为数组
+//        List<Tuple2<Long,Row>> userInfos = userid2InfoRDD.collect();
+//        final Broadcast<List<Tuple2<Long, Row>>> userInfosBroadcast = sc.broadcast(userInfos);
+//
+//        JavaPairRDD<String,String> tunedTDD =  userid2PartAggreInfoRDD.mapToPair(
+//                new PairFunction<Tuple2<Long, String>, String, String>() {
+//                    @Override
+//                    public Tuple2<String, String> call(Tuple2<Long, String> tuple) throws Exception {
+//                        //得到用户信息map
+//                        List<Tuple2<Long,Row>> userInfos = userInfosBroadcast.value();
+//
+//                        Map<Long,Row> userInfoMap = new HashMap<>();
+//                        for (Tuple2<Long, Row> userInfo : userInfos) {
+//                            userInfoMap.put(userInfo._1, userInfo._2);
+//                        }
+//
+//                        //获取当前用户对应的信息
+//                        String partAggrInfo = tuple._2;
+//                        Row userInfoRow = userInfoMap.get(tuple._1);
+//
+//                        String sessionid = StringUtils.getFieldFromConcatString(
+//                                partAggrInfo,"\\|",Constants.FIELD_SESSION_ID);
+//
+//                        int age = userInfoRow.getInt(3);
+//                        String professional = userInfoRow.getString(4);
+//                        String city = userInfoRow.getString(5);
+//                        String sex = userInfoRow.getString(6);
+//
+//                        String fullAggrInfo = partAggrInfo + "|"
+//                                + Constants.FIELD_AGE + "=" + age + "|"
+//                                + Constants.FIELD_PROFESSIONAL + "=" + professional + "|"
+//                                + Constants.FIELD_CITY + "=" + city + "|"
+//                                + Constants.FIELD_SEX + "=" + sex;
+//
+//                        return new Tuple2<String,String> (sessionid, fullAggrInfo);
+//
+//
+//
+//                    }
+//                }
+//        );
+
+        /**
+         * sample采样倾斜key单独进行join
+         *
+         * smaple函数的三个参数：
+         * withReplacement（Boolean）：抽取后数据是否放回。true(放回)，false(丢弃)
+         * fraction(Double):
+         * 如果抽取不放回：则表示每条数据被抽取的概率
+         * 如果抽取放回：则表示每条数据被抽取的次数
+         * seed(Long)：随机种子。设置了值表示每次抽取都是一样的结果。没有设置值，则表示每次抽取的结果都不一样。因为随机种子变来变去
+         */
+//        JavaPairRDD<Long,String> sampleRDD = userid2PartAggreInfoRDD.sample(false,0.1,9);
+//        JavaPairRDD<Long,Long> mappedSampleRDD = sampleRDD.mapToPair(
+//                new PairFunction<Tuple2<Long, String>, Long, Long>() {
+//                    @Override
+//                    public Tuple2<Long, Long> call(Tuple2<Long, String> tuple) throws Exception {
+//
+//                        return new Tuple2<Long,Long>(tuple._1,1L);
+//                    }
+//                }
+//        );
+//
+//        //计算采样key的次数
+//        JavaPairRDD<Long,Long> computedSampleRDD = mappedSampleRDD.reduceByKey(
+//                new Function2<Long, Long, Long>() {
+//                    @Override
+//                    public Long call(Long v1, Long v2) throws Exception {
+//                        return v1 + v2;
+//                    }
+//                }
+//        );
+//        //对key进行翻转排序
+//        JavaPairRDD<Long,Long> reverseSampleRDD = computedSampleRDD.mapToPair(
+//                new PairFunction<Tuple2<Long, Long>, Long, Long>() {
+//                    @Override
+//                    public Tuple2<Long, Long> call(Tuple2<Long, Long> tuple) throws Exception {
+//                        return new Tuple2<>(tuple._2,tuple._1);
+//                    }
+//                }
+//        );
+//        //降序排序
+//        //take()表示返回数据集的前n个数据，是一个List，所以用get获取第一个数据
+//        final Long skewedUserid = reverseSampleRDD.sortByKey(false).take(1).get(0)._2;
+//
+//        //过滤出倾斜key
+//        JavaPairRDD<Long,String> skewedRDD = userid2PartAggreInfoRDD.filter(
+//                new Function<Tuple2<Long, String>, Boolean>() {
+//                    @Override
+//                    public Boolean call(Tuple2<Long, String> tuple) throws Exception {
+//                        return tuple._1.equals(skewedUserid);
+//                    }
+//                }
+//        );
+//        JavaPairRDD<Long,String> commonRDD = userid2PartAggreInfoRDD.filter(
+//                new Function<Tuple2<Long, String>, Boolean>() {
+//                    @Override
+//                    public Boolean call(Tuple2<Long, String> tuple) throws Exception {
+//                        return !tuple._1.equals(skewedUserid);
+//                    }
+//                }
+//        );
+//
+//        JavaPairRDD<String,Row> skewedUserid2infoRDD = userid2InfoRDD.filter(
+//                new Function<Tuple2<Long, Row>, Boolean>() {
+//                    @Override
+//                    public Boolean call(Tuple2<Long, Row> tuple) throws Exception {
+//                        return tuple._1.equals(skewedUserid);
+//                    }
+//                }
+//        ).flatMapToPair(
+//                new PairFlatMapFunction<Tuple2<Long, Row>, String, Row>() {
+//                    @Override
+//                    public Iterable<Tuple2<String, Row>> call(Tuple2<Long, Row> tuple) throws Exception {
+//                        Random random = new Random();
+//                        List<Tuple2<String,Row>> list = new ArrayList<>();
+//                        for (int i = 0; i < 100; i++) {
+//                            int prefix = random.nextInt(100);
+//                            list.add(new Tuple2<>(prefix + "_" + tuple._1, tuple._2));
+//                        }
+//                        return list;
+//                    }
+//                }
+//        );
+//
+//
+//        JavaPairRDD<Long, Tuple2<String, Row>> joinRDD1 = skewedRDD.mapToPair(
+//                new PairFunction<Tuple2<Long, String>, String, String>() {
+//                    @Override
+//                    public Tuple2<String, String> call(Tuple2<Long, String> tuple) throws Exception {
+//                        Random random = new Random();
+//                        int prefix = random.nextInt(100);
+//                        return new Tuple2<String,String>(prefix + "_" + tuple._1, tuple._2);
+//                    }
+//                }
+//        ).join(skewedUserid2infoRDD)
+//                .mapToPair(
+//                        new PairFunction<Tuple2<String, Tuple2<String, Row>>, Long, Tuple2<String, Row>>() {
+//                            @Override
+//                            public Tuple2<Long, Tuple2<String, Row>> call(Tuple2<String, Tuple2<String, Row>> tuple) throws Exception {
+//                                long userid = Long.valueOf(tuple._1.split("_")[1]);
+//                                return new Tuple2<>(userid,tuple._2);
+//                            }
+//                        }
+//                );
+//
+//        JavaPairRDD<Long, Tuple2<String, Row>> joinRDD2 = commonRDD.join(userid2InfoRDD);
+//        JavaPairRDD<Long, Tuple2<String, Row>> unionRDD = joinRDD1.union(joinRDD2);
+//        JavaPairRDD<String,String> finalRDD = unionRDD.mapToPair(
+//                new PairFunction<Tuple2<Long, Tuple2<String, Row>>, String, String>() {
+//
+//                    private static final long serialVersionUID = 1L;
+//
+//                    @Override
+//                    public Tuple2<String, String> call(
+//                            Tuple2<Long, Tuple2<String, Row>> tuple)
+//                            throws Exception {
+//
+//                        String partAggrInfo = tuple._2._1;
+//                        Row userInfoRow = tuple._2._2;
+//
+//                        String sessionid = StringUtils.getFieldFromConcatString(
+//                                partAggrInfo,"\\|",Constants.FIELD_SESSION_ID);
+//
+//                        int age = userInfoRow.getInt(3);
+//                        String professional = userInfoRow.getString(4);
+//                        String city = userInfoRow.getString(5);
+//                        String sex = userInfoRow.getString(6);
+//
+//                        String fullAggrInfo = partAggrInfo + "|"
+//                                + Constants.FIELD_AGE + "=" + age + "|"
+//                                + Constants.FIELD_PROFESSIONAL + "=" + professional + "|"
+//                                + Constants.FIELD_CITY + "=" + city + "|"
+//                                + Constants.FIELD_SEX + "=" + sex;
+//
+//                        return new Tuple2<String,String> (sessionid, fullAggrInfo);
+//
+//                    }
+//                }
+//        );
+
+        /**
+         * 使用随机数和扩容表join
+         */
+//        JavaPairRDD<String,Row> expandedRDD = userid2InfoRDD.flatMapToPair(
+//                new PairFlatMapFunction<Tuple2<Long, Row>, String, Row>() {
+//                    @Override
+//                    public Iterable<Tuple2<String, Row>> call(Tuple2<Long, Row> tuple) throws Exception {
+//                        List<Tuple2<String,Row>> list = new ArrayList<>();
+//                        for (int i = 0; i < 10; i++) {
+//                            list.add(new Tuple2<>(i + "_" + tuple._1, tuple._2));
+//                        }
+//                        return list;
+//                    }
+//                }
+//        );
+//
+//        JavaPairRDD<String,String> mappedRDD =  userid2PartAggreInfoRDD.mapToPair(
+//                new PairFunction<Tuple2<Long, String>, String, String>() {
+//                    @Override
+//                    public Tuple2<String, String> call(Tuple2<Long, String> tuple) throws Exception {
+//                        Random random = new Random();
+//                        int prefix = random.nextInt();
+//                        return new Tuple2<>(prefix+"_"+tuple._1,tuple._2);
+//                    }
+//                }
+//        );
+//
+//        JavaPairRDD<String, Tuple2<String, Row>> joinRDD = mappedRDD.join(expandedRDD);
+//
+//        JavaPairRDD<String,String> finalRDD = joinRDD.mapToPair(
+//                new PairFunction<Tuple2<String, Tuple2<String, Row>>, String, String>() {
+//
+//                    private static final long serialVersionUID = 1L;
+//
+//                    @Override
+//                    public Tuple2<String, String> call(
+//                            Tuple2<String, Tuple2<String, Row>> tuple)
+//                            throws Exception {
+//
+//                        String partAggrInfo = tuple._2._1;
+//                        Row userInfoRow = tuple._2._2;
+//
+//                        String sessionid = StringUtils.getFieldFromConcatString(
+//                                partAggrInfo,"\\|",Constants.FIELD_SESSION_ID);
+//
+//                        int age = userInfoRow.getInt(3);
+//                        String professional = userInfoRow.getString(4);
+//                        String city = userInfoRow.getString(5);
+//                        String sex = userInfoRow.getString(6);
+//
+//                        String fullAggrInfo = partAggrInfo + "|"
+//                                + Constants.FIELD_AGE + "=" + age + "|"
+//                                + Constants.FIELD_PROFESSIONAL + "=" + professional + "|"
+//                                + Constants.FIELD_CITY + "=" + city + "|"
+//                                + Constants.FIELD_SEX + "=" + sex;
+//
+//                        return new Tuple2<String,String> (sessionid, fullAggrInfo);
+//
+//                    }
+//                }
+//        );
+
 
         //将<useid,fullAggrInfo>格式的数据转换成<sessionid,fullAggrInfo>格式的数据
         JavaPairRDD<String,String> sessionid2FullAggrInfoRDD = userid2FullInfoRDD.mapToPair(
@@ -716,8 +978,16 @@ public class UserVisitSessionAnalyzeSpark {
                 }
         );
 
+        /**
+         * 每天每小时的session数量的计算
+         * 是有可能出现数据倾斜的，这个是没有疑问的
+         * 比如大部分小时，一般访问量也就10万；但是，中午12点的时候，高峰期，一小时1000万
+         * 这个时候就会发生数据倾斜
+         *
+         */
         //得到每天每小时的session数量
         Map<String,Object> countMap = time2pairRDD.countByKey();//这里为空,size=0
+
 
         /**
          * 第二步，使用时间比例随机抽取算法，计算出每天每小时抽取session的索引
@@ -1288,6 +1558,80 @@ public class UserVisitSessionAnalyzeSpark {
                     }
                 }
         );
+
+        /**
+         * 计算各个品类的点击次数
+         *
+         * 如果点击某个品类点击了1000万次，其他品类都是10万次，那么也会数据倾斜
+         */
+//        JavaPairRDD<Long,Long> clickCategoryId2CountRDD = clickCategoryIdRDD.reduceByKey(
+//                new Function2<Long, Long, Long>() {
+//
+//                    private static final long serialVersionUID = 1L;
+//                    @Override
+//                    public Long call(Long v1, Long v2) throws Exception {
+//                        return v1 + v2;
+//                    }
+//                }
+//        ,1000);//提高并行度
+
+        /**
+         * 使用随机key实现双重聚合
+         */
+//        /**
+//         * 使用随机key实现双重聚合
+//         * 第一步，给每个key打上一个随机数
+//         *
+//         */
+//        JavaPairRDD<String,Long> mappedClickCategoryIdRDD =  clickCategoryIdRDD.mapToPair(
+//                new PairFunction<Tuple2<Long, Long>, String, Long>() {
+//                    @Override
+//                    public Tuple2<String, Long> call(Tuple2<Long, Long> tuple) throws Exception {
+//                        Random random = new Random();
+//                        int prefix = random.nextInt(10);
+//                        return new Tuple2<String,Long>(prefix+"_"+tuple._1,tuple._2);
+//                    }
+//                }
+//        );
+//
+//        /**
+//         * 第二步，执行第一轮聚合
+//         */
+//        JavaPairRDD<String,Long> firstAggrRDD = mappedClickCategoryIdRDD.reduceByKey(
+//                new Function2<Long, Long, Long>() {
+//                    @Override
+//                    public Long call(Long v1, Long v2) throws Exception {
+//                        return v1+v2;
+//                    }
+//                }
+//        );
+//
+//        /**
+//         * 第三步，去除掉每个key的前缀
+//         */
+//        JavaPairRDD<Long,Long> restoreRDD = firstAggrRDD.mapToPair(
+//                new PairFunction<Tuple2<String, Long>, Long, Long>() {
+//                    @Override
+//                    public Tuple2<Long, Long> call(Tuple2<String, Long> tuple) throws Exception {
+//                        Long categoryid = Long.valueOf(tuple._1.split("_")[1]);
+//                        return new Tuple2<Long,Long>(categoryid,tuple._2);
+//                    }
+//                }
+//        );
+//
+//
+//
+//        /**
+//         * 第四步，做第二轮全局的聚合
+//         */
+//        JavaPairRDD<Long,Long> globalAggrRDD = restoreRDD.reduceByKey(
+//                new Function2<Long, Long, Long>() {
+//                    @Override
+//                    public Long call(Long v1, Long v2) throws Exception {
+//                        return v1+v2;
+//                    }
+//                }
+//        );
 
         JavaPairRDD<Long,Long> clickCategoryId2CountRDD = clickCategoryIdRDD.reduceByKey(
                 new Function2<Long, Long, Long>() {
