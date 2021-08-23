@@ -56,4 +56,12 @@ public class DAOFactory {
     public static ITop10SessionDAO getTop10SessionDAO(){
         return new Top10SessionDAOImpl();
     }
+
+    /**
+     * 获取页面单跳转化率的DAO
+     * @return
+     */
+    public static IPageSplitConvertRateDAO getPageSplitConvertRateDAO(){
+        return new PageSplitConvertRateDAOImpl();
+    }
 }

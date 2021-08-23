@@ -86,12 +86,11 @@ import java.util.*;
 public class UserVisitSessionAnalyzeSpark {
 
     public static void main(String[] args) {
-        args = new String[]{"2"};
+
 
         //构建Spark上下文
         SparkConf conf = new SparkConf()
                 .setAppName(Constants.SPARK_APP_NAME_SESSION)
-                .setMaster("local")
                 .set("spark.shuffle.file.buffer","64")//调节map task内存缓冲
                 .set("spark.shuffle.memoryFraction","0.3")//调节reduce端聚合内存占比
                 .set("spark.shuffle.consolidateFiles","true")//配置map端的输出文件的合并
@@ -101,6 +100,7 @@ public class UserVisitSessionAnalyzeSpark {
                 .set("spark.shuffle.io.retryWait","60")//shuffle拉取数据时最大等待时间，60秒
                 .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")//启用kryo序列化
                 .registerKryoClasses(new Class[]{CategorySortKey.class});//注册自己的类
+        SparkUtils.setMaster(conf);
         /**
          * 比如，获取top10热门商品功能中，二次排序，自定义了一个key
          * 那个key是需要在进行shuffle的时候，进行网络传输的，因此也是要实现序列化的
@@ -111,14 +111,19 @@ public class UserVisitSessionAnalyzeSpark {
         SQLContext sqlContext = getSQLContext(sc.sc());
 
         //生成模拟测试数据
-        mockData(sc, sqlContext);
+        SparkUtils.mockData(sc, sqlContext);
 
         //创建需要使用的DAO组件
         ITaskDAO taskDAO = DAOFactory.getTaskDAO();
 
         //首先得查询出指定的任务，并获取任务的查询参数
-        long taskid = ParamUtils.getTaskIdFromArgs(args);
+        long taskid = ParamUtils.getTaskIdFromArgs(args,Constants.SPARK_LOCAL_TASKID_SESSION);
         Task task = taskDAO.findById(taskid);
+        if (task == null) {
+            System.out.println(new Date() + ":cannot find this task with id ["+taskid+"].");
+            return;
+        }
+
         JSONObject taskParam = JSONObject.parseObject(task.getTaskParam());
 
         //如果要进行session粒度的数据聚合
@@ -136,7 +141,8 @@ public class UserVisitSessionAnalyzeSpark {
          *
          * 重构完以后，actionRDD，就在最开始，使用一次，用来生成以sessionid为key的RDD
          */
-        JavaRDD<Row> actionRDD = getActionRDDByDateRange(sqlContext, taskParam);
+//        JavaRDD<Row> actionRDD = getActionRDDByDateRange(sqlContext, taskParam);
+        JavaRDD<Row> actionRDD = SparkUtils.getActionRDDByDateRange(sqlContext, taskParam);
         //sessionid2actionRDD的数据格式：<session,Row>
         JavaPairRDD<String, Row> sessionid2actionRDD = getSessionid2ActionRDD(actionRDD);
         /**
