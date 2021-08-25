@@ -64,4 +64,12 @@ public class DAOFactory {
     public static IPageSplitConvertRateDAO getPageSplitConvertRateDAO(){
         return new PageSplitConvertRateDAOImpl();
     }
+
+    /**
+     * 获取各区域top3商品的DAO
+     * @return
+     */
+    public static IAreaTop3ProductDAO getAreaTop3ProductDAO() {
+        return new AreaTop3ProductDAOImpl();
+    }
 }
