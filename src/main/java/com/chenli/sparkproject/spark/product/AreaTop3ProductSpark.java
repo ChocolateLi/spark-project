@@ -156,12 +156,18 @@ public class AreaTop3ProductSpark {
     private static JavaPairRDD<Long, Row> getcityid2CityInfoRDD(SQLContext sqlContext) {
         // 构建Mysql连接配置信息（直接从配置文件中获取）
         String url = null;
+        String user = null;
+        String password = null;
         boolean local = ConfigurationManager.getBoolean(Constants.SPARK_LOCAL);
 
         if(local) {
             url = ConfigurationManager.getProperty(Constants.JDBC_URL);
+            user = ConfigurationManager.getProperty(Constants.JDBC_USER);
+            password = ConfigurationManager.getProperty(Constants.JDBC_PASSWORD);
         } else {
             url = ConfigurationManager.getProperty(Constants.JDBC_URL_PROD);
+            user = ConfigurationManager.getProperty(Constants.JDBC_USER_PROD);
+            password = ConfigurationManager.getProperty(Constants.JDBC_PASSWORD_PROD);
         }
 
         Map<String,String> options = new HashMap<>();
@@ -179,7 +185,8 @@ public class AreaTop3ProductSpark {
                 new PairFunction<Row, Long, Row>() {
                     @Override
                     public Tuple2<Long, Row> call(Row row) throws Exception {
-                        long cityid = row.getLong(0);
+                        //long cityid = row.getLong(0);
+                        long cityid = Long.valueOf(String.valueOf(row.get(0)));
                         return new Tuple2<Long,Row>(cityid, row);
                     }
                 }
@@ -289,7 +296,7 @@ public class AreaTop3ProductSpark {
                     + "tapcc.product_id,"
                     + "tapcc.click_count,"
                     + "pi.product_name,"
-                    + "if(get_json_object(pi.extend_info,'product_status')=0,'自营商品','第三方商品') product_status"
+                    + "if(get_json_object(pi.extend_info,'product_status')='0','自营商品','第三方商品') product_status"
                 + "from tmp_area_product_click_count tapcc "
                 + "join product_info pi on tapcc.product_id = pi.product_id ";
 
@@ -331,7 +338,7 @@ public class AreaTop3ProductSpark {
                         + "click_count,"
                         + "product_name,"
                         + "product_status"
-                        + "row_number() over(partition by area order click_count desc) rank"
+                        + "row_number() over (partition by area order click_count desc) rank"
                 + ") t"
                 + "where rank<=3";
 
