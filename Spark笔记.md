@@ -10,7 +10,7 @@ RDD的本质：在并行计算的过程中实现数据的共享，这种共享�
 
 ##  Spark基本工作流程：
 
- ![Spark基本框图](C:\Users\95435\AppData\Roaming\Typora\typora-user-images\image-20210726153058379.png)
+ ![Spark基本框图](https://github.com/ChocolateLi/spark-project/blob/master/spark_picture/Spark%E5%9F%BA%E6%9C%AC%E6%A1%86%E6%9E%B6%E5%9B%BE.png)
 
 1. Spark的应用分为任务调度和任务执行两个部分
 2. 所以Spark程序都离不开SparkContext和Executor两部分，Executor负责执行任务，运行Executor的机器称为Worker节点，SparkContext由用户程序启动，通过资源调度模块和Executor通信。SparkContext和Executor这两部分在各种运行模式上是公用的。
@@ -24,7 +24,7 @@ RDD的本质：在并行计算的过程中实现数据的共享，这种共享�
 
 ### 作业调度关系图
 
-![作业调度关系图](https://images2015.cnblogs.com/blog/84976/201603/84976-20160326085359620-1141313272.png)
+![作业调度关系图](https://github.com/ChocolateLi/spark-project/blob/master/spark_picture/Spark%E4%BD%9C%E4%B8%9A%E5%85%B3%E7%B3%BB%E5%9B%BE.png)
 
 
 
@@ -38,7 +38,7 @@ RDD的本质：在并行计算的过程中实现数据的共享，这种共享�
 
 ### 作业调度具体流程
 
-![作业调度具体流程](C:\Users\95435\AppData\Roaming\Typora\typora-user-images\image-20210726161608602.png)
+![作业调度具体流程](https://github.com/ChocolateLi/spark-project/blob/master/spark_picture/Spark%E4%BD%9C%E4%B8%9A%E8%B0%83%E5%BA%A6%E6%B5%81%E7%A8%8B%E5%9B%BE.png)
 
 1. 用户提交程序(Application)创建SparkContext实例，SparkContext根据RDD对象生成DAG图，将作业(Job)提交给DAGScheduler
 2. DAGScheduler将作业(Job)划分成不同的Stage(从末端RDD开始，根据shuffle来划分)，每个Stage都是任务的集(TaskSet)，以TaskSet为单位提交给TaskScheduler

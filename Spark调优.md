@@ -38,7 +38,7 @@
 
 #### 调节资源以后，性能为什么会提升？
 
-![分配资源](D:\MyFile\求职面试\spark_picture\分配资源.png)
+![分配资源](https://github.com/ChocolateLi/spark-project/blob/master/spark_picture/%E5%88%86%E9%85%8D%E8%B5%84%E6%BA%90.png)
 
 
 
@@ -167,7 +167,7 @@ StorageLevel.MEMORY_ONLY_2()
 
 #### 广播变量原理图
 
-![](D:\MyFile\求职面试\spark_picture\广播变量.png)
+![广播变量](https://github.com/ChocolateLi/spark-project/blob/master/spark_picture/%E5%B9%BF%E6%92%AD%E5%8F%98%E9%87%8F.png)
 
 
 
@@ -470,7 +470,7 @@ new SparkConf()
 
 JVM基本结构图
 
-![](D:\MyFile\求职面试\spark_picture\JVM结构.png)
+![JVM结构](https://github.com/ChocolateLi/spark-project/blob/master/spark_picture/JVM%E7%BB%93%E6%9E%84.png)
 
 
 
@@ -575,7 +575,7 @@ ${1}
 
 ##### 原理图
 
-![](D:\MyFile\求职面试\spark_picture\executor堆外内存原理图.png)
+![executor堆外内存](https://github.com/ChocolateLi/spark-project/blob/master/spark_picture/executor%E5%A0%86%E5%A4%96%E5%86%85%E5%AD%98%E5%8E%9F%E7%90%86%E5%9B%BE.png)
 
 
 
@@ -611,7 +611,7 @@ JVM调优：垃圾回收
 
 ##### 原理图
 
-![](D:\MyFile\求职面试\spark_picture\连接等待时长.png)
+![连接等待时长](https://github.com/ChocolateLi/spark-project/blob/master/spark_picture/%E8%BF%9E%E6%8E%A5%E7%AD%89%E5%BE%85%E6%97%B6%E9%95%BF.png)
 
 
 
@@ -673,7 +673,7 @@ groupByKey，要把分布在集群各个节点上的数据中的同一个key，�
 
 #### Shuffle原理
 
-![](D:\MyFile\求职面试\spark_picture\shuffle原理.png)
+![Shuffle原理](https://github.com/ChocolateLi/spark-project/blob/master/spark_picture/shuffle%E5%8E%9F%E7%90%86.png)
 
 
 
@@ -707,7 +707,7 @@ shuffle前半部分的task在写入数据到磁盘文件之前，都会先写入
 
 #### 未开启合并map端输出文件
 
-![](D:\MyFile\求职面试\spark_picture\未开启合并map端输出文件.png)
+![未开启合并map端输出文件](https://github.com/ChocolateLi/spark-project/blob/master/spark_picture/%E6%9C%AA%E5%BC%80%E5%90%AF%E5%90%88%E5%B9%B6map%E7%AB%AF%E8%BE%93%E5%87%BA%E6%96%87%E4%BB%B6.png)
 
 
 
@@ -745,7 +745,7 @@ shuffle中的写磁盘的操作，基本上就是shuffle中性能消耗最为严
 
 #### 开启合并map端输出文件
 
-![](D:\MyFile\求职面试\spark_picture\开启合并map端输出文件.png)
+![开启合并map端输出文件](https://github.com/ChocolateLi/spark-project/blob/master/spark_picture/%E5%BC%80%E5%90%AF%E5%90%88%E5%B9%B6map%E7%AB%AF%E8%BE%93%E5%87%BA%E6%96%87%E4%BB%B6.png)
 
 
 
@@ -803,7 +803,7 @@ map端输出文件，在生产环境中，立减5倍！
 
 #### 过程原理
 
-![](D:\MyFile\求职面试\spark_picture\map端内存缓冲与reduce端内存占比.png)
+![map端内存缓冲与reduce端内存占比](https://github.com/ChocolateLi/spark-project/blob/master/spark_picture/map%E7%AB%AF%E5%86%85%E5%AD%98%E7%BC%93%E5%86%B2%E4%B8%8Ereduce%E7%AB%AF%E5%86%85%E5%AD%98%E5%8D%A0%E6%AF%94.png)
 
 
 
@@ -883,7 +883,7 @@ Spark 1.2.x 之前默认shuffle是HashshuffleManager，在Spark 1.2.x 之后默�
 
 #### SortShuffleManager原理
 
-![](D:\MyFile\求职面试\spark_picture\SortShuffleManger.png)
+![SortShuffleManager](https://github.com/ChocolateLi/spark-project/blob/master/spark_picture/SortShuffleManger.png)
 
 
 
@@ -957,7 +957,7 @@ spark中，最基本的原则，就是每个task处理一个RDD的partition。
 
 
 
-![](D:\MyFile\求职面试\spark_picture\Map和MapPartitions.png)
+![Map和MapPartitions](https://github.com/ChocolateLi/spark-project/blob/master/spark_picture/Map%E5%92%8CMapPartitions.png)
 
 Map函数是把一个RDD的partition的数据一条一条地传进函数
 
@@ -1005,7 +1005,7 @@ MapPartitions的缺点：
 
 ### 2、算子调优之filter过后使用coalesce算子减少分区数量
 
-![](D:\MyFile\求职面试\spark_picture\fileter.png)
+![filter](https://github.com/ChocolateLi/spark-project/blob/master/spark_picture/fileter.png)
 
 
 
@@ -1052,7 +1052,7 @@ coalesce算子
 
 #### foreach和foreachPartition写数据库对比
 
-![](D:\MyFile\求职面试\spark_picture\foreach和foreachPartiton区别.png)
+![foreach和foreachPartition](https://github.com/ChocolateLi/spark-project/blob/master/spark_picture/foreach%E5%92%8CforeachPartiton%E5%8C%BA%E5%88%AB.png)
 
 
 
@@ -1162,7 +1162,7 @@ repartition算子，你用Spark SQL这一步的并行度和task数量，肯定�
 
 
 
-![](D:\MyFile\求职面试\spark_picture\repartition.png)
+![repartition](https://github.com/ChocolateLi/spark-project/blob/master/spark_picture/repartition.png)
 
 
 
@@ -1192,7 +1192,7 @@ reduceByKey，相较于普通的shuffle操作（比如groupByKey），它的一�
 
 #### reduce端缓冲过程
 
-![](D:\MyFile\求职面试\spark_picture\reduce端缓冲过程.png)
+![reduce端缓冲过程](https://github.com/ChocolateLi/spark-project/blob/master/spark_picture/reduce%E7%AB%AF%E7%BC%93%E5%86%B2%E8%BF%87%E7%A8%8B.png)
 
 map端的task是不断的输出数据的，数据量可能是很大的。
 
@@ -1261,7 +1261,7 @@ SparkConf.set("spark.reducer.maxSizeInFlight","24")
 
 #### reduce端拉取map端数据基本的过程
 
-![](D:\MyFile\求职面试\spark_picture\reduce端拉取map端数据的过程.png)
+![reduce端拉取map端数据基本的过程](https://github.com/ChocolateLi/spark-project/blob/master/spark_picture/reduce%E7%AB%AF%E6%8B%89%E5%8F%96map%E7%AB%AF%E6%95%B0%E6%8D%AE%E7%9A%84%E8%BF%87%E7%A8%8B.png)
 
 
 
@@ -1465,7 +1465,7 @@ return actionRDD.mapToPair(new PairFunction<Row, String, Row>() {
 
 #### yarn-client提交模式
 
-![](D:\MyFile\求职面试\spark_picture\YARN-client提交模式.png)
+![yarn-client提交模式](https://github.com/ChocolateLi/spark-project/blob/master/spark_picture/YARN-client%E6%8F%90%E4%BA%A4%E6%A8%A1%E5%BC%8F.png)
 
 更正错误：
 
@@ -1509,7 +1509,7 @@ yarn-cluster模式，就跟你的本地机器引起的网卡流量激增的问�
 
 #### yarn-cluster模式
 
-![](D:\MyFile\求职面试\spark_picture\yarn-cluster提交模式.png)
+![yarn-cluster模式](https://github.com/ChocolateLi/spark-project/blob/master/spark_picture/yarn-cluster%E6%8F%90%E4%BA%A4%E6%A8%A1%E5%BC%8F.png)
 
 
 
@@ -1571,7 +1571,7 @@ JVM Stack Memory Overflow，栈内存溢出。
 
 #### RDD使用缓存和checkpoint
 
-![](D:\MyFile\求职面试\spark_picture\对RDD使用缓存和checkpoint.png)
+![RDD使用缓存和checkpoint](https://github.com/ChocolateLi/spark-project/blob/master/spark_picture/%E5%AF%B9RDD%E4%BD%BF%E7%94%A8%E7%BC%93%E5%AD%98%E5%92%8Ccheckpoint.png)
 
 
 
@@ -1644,7 +1644,7 @@ cache和checkpoint的区别
 
 #### 数据倾斜原理
 
-![](D:\MyFile\求职面试\spark_picture\数据倾斜.png)
+![数据倾斜](https://github.com/ChocolateLi/spark-project/blob/master/spark_picture/%E6%95%B0%E6%8D%AE%E5%80%BE%E6%96%9C.png)
 
 
 
@@ -1772,7 +1772,7 @@ select ... from ... group by city_id
 
 
 
-![](D:\MyFile\求职面试\spark_picture\reduce端提高并行度.png)
+![reduce端提高并行度](https://github.com/ChocolateLi/spark-project/blob/master/spark_picture/reduce%E7%AB%AF%E6%8F%90%E9%AB%98%E5%B9%B6%E8%A1%8C%E5%BA%A6.png)
 
 
 
@@ -1804,7 +1804,7 @@ select ... from ... group by city_id
 
 #### 原理
 
-![](D:\MyFile\求职面试\spark_picture\使用随机key实现双重聚合2.0.png)
+![随机key实现双重聚合](https://github.com/ChocolateLi/spark-project/blob/master/spark_picture/%E4%BD%BF%E7%94%A8%E9%9A%8F%E6%9C%BAkey%E5%AE%9E%E7%8E%B0%E5%8F%8C%E9%87%8D%E8%81%9A%E5%90%882.0.png)
 
 
 
@@ -1836,7 +1836,7 @@ select ... from ... group by city_id
 
 #### reduce join 和 map join对比
 
-![](D:\MyFile\求职面试\spark_picture\reduce join 和 map join对比.png)
+![reduce join 和 map join对比](https://github.com/ChocolateLi/spark-project/blob/master/spark_picture/reduce%20join%20%E5%92%8C%20map%20join%E5%AF%B9%E6%AF%94.png)
 
 
 
@@ -1870,7 +1870,7 @@ select ... from ... group by city_id
 
 #### 原理
 
-![](D:\MyFile\求职面试\spark_picture\用sample采用倾斜key进行单独join.png)
+![sample采样倾斜key单独进行join](https://github.com/ChocolateLi/spark-project/blob/master/spark_picture/%E7%94%A8sample%E9%87%87%E7%94%A8%E5%80%BE%E6%96%9Ckey%E8%BF%9B%E8%A1%8C%E5%8D%95%E7%8B%ACjoin.png)
 
 
 
@@ -1936,7 +1936,7 @@ select ... from ... group by city_id
 
 #### 原理
 
-![](D:\MyFile\求职面试\spark_picture\使用随机数扩容表进行join.png)
+![使用随机数和扩容表进行join](https://github.com/ChocolateLi/spark-project/blob/master/spark_picture/%E4%BD%BF%E7%94%A8%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%89%A9%E5%AE%B9%E8%A1%A8%E8%BF%9B%E8%A1%8Cjoin.png)
 
 步骤：
 
