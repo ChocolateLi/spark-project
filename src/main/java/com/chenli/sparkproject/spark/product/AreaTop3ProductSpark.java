@@ -338,7 +338,7 @@ public class AreaTop3ProductSpark {
                         + "click_count,"
                         + "product_name,"
                         + "product_status"
-                        + "row_number() over (partition by area order click_count desc) rank"
+                        + "row_number() over (partition by area order by click_count desc) rank"
                 + ") t"
                 + "where rank<=3";
 

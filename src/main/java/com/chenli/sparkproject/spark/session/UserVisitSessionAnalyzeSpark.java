@@ -91,7 +91,7 @@ public class UserVisitSessionAnalyzeSpark {
         //构建Spark上下文
         SparkConf conf = new SparkConf()
                 .setAppName(Constants.SPARK_APP_NAME_SESSION)
-                .set("spark.shuffle.file.buffer","64")//调节map task内存缓冲
+                .set("spark.shuffle.file.buffer","64")//调节map task内存缓冲自定义Accumulator、随机抽取算法、二次排序、分组取TopN
                 .set("spark.shuffle.memoryFraction","0.3")//调节reduce端聚合内存占比
                 .set("spark.shuffle.consolidateFiles","true")//配置map端的输出文件的合并
                 .set("spark.storage.memoryFraction","0.5")//调整spark存储内存比列
@@ -143,7 +143,7 @@ public class UserVisitSessionAnalyzeSpark {
          */
 //        JavaRDD<Row> actionRDD = getActionRDDByDateRange(sqlContext, taskParam);
         JavaRDD<Row> actionRDD = SparkUtils.getActionRDDByDateRange(sqlContext, taskParam);
-        //sessionid2actionRDD的数据格式：<session,Row>
+        //sessionid2actionRDD的数据格式：<sessionid,Row>
         JavaPairRDD<String, Row> sessionid2actionRDD = getSessionid2ActionRDD(actionRDD);
         /**
          * 持久化，很简单，就是对RDD调用persist()方法，并传入一个持久化级别
@@ -1017,7 +1017,7 @@ public class UserVisitSessionAnalyzeSpark {
 
         //开始实现按时间比例随机抽取算法
 
-        //假设总共抽取100个session，先按照天数，进行平分
+        //假设总共抽取100个session，先按照每天，进行平分
         int extractNumberPerDay = 100/dateHourCountMap.size();
 
         /**
@@ -1930,7 +1930,7 @@ public class UserVisitSessionAnalyzeSpark {
                                     }
                                 }
 
-                                //返回结果,<categoryid,sessionid,count> 格式
+                                //返回结果,<categoryid,（sessionid,count）> 格式
                                 List<Tuple2<Long,String>> list = new ArrayList<>();
 
                                 for (Map.Entry<Long, Long> categoryCountEntry : categoryCountMap.entrySet()) {

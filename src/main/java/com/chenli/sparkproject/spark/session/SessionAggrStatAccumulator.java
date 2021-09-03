@@ -11,6 +11,26 @@ import org.apache.spark.AccumulatorParam;
  *
  * @author: 小LeetCode~
  **/
+
+/**
+ * 假设样本数据集合为simple={1,2,3,4}
+ *
+ * 执行顺序:
+ *
+ * 1.调用zero(initialValue)，返回zeroValue
+ *
+ * 2.调用addAccumulator(zeroValue,1) 返回v1.
+ *
+ * 调用addAccumulator(v1,2)返回v2.
+ *
+ * 调用addAccumulator(v2,3)返回v3.
+ *
+ * 调用addAccumulator(v3,4)返回v4.
+ *
+ * 3.调用addInPlace(initialValue,v4)
+ *
+ * 因此最终结果是zeroValue+1+2+3+4+initialValue.
+ */
 public class SessionAggrStatAccumulator implements AccumulatorParam<String> {
 
     private static final long serialVersionUID = 6548616966668061352L;
